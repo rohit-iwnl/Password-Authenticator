@@ -202,7 +202,8 @@ public class ManageSql {
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery(query);
             Date date=new Date();
-            String update = "UPDATE " + GLOBAL_DB + " SET last_login = '" +date+ "' WHERE id = 1";
+            String encoded_date = Encryption.getEncoded(date.toString());
+            String update = "UPDATE " + GLOBAL_DB + " SET last_login = '" +encoded_date+ "' WHERE id = 1";
             execute(update);
         }catch (SQLException e)
         {

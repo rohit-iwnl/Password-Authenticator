@@ -17,6 +17,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import passwordauthen.AESCrypto;
+import passwordauthen.Encryption;
 import passwordauthen.ManageSql;
 import passwordauthen.MenuScreen;
 
@@ -73,16 +75,18 @@ public class SearchProceedController implements Initializable {
     private void loadData() {
         ManageSql obj = new ManageSql();
         Connection con = obj.connectToDb();
-        String query = "SELECT * FROM "+obj.GLOBAL_DB+" WHERE "+choice+" = '"+input+"'";
+        AESCrypto crypto = new AESCrypto();
+
         try{
+            String query = "SELECT * FROM "+obj.GLOBAL_DB+" WHERE "+choice+" = '"+crypto.encrypt(input)+"'";
             Statement sqlstatement = con.createStatement();
             ResultSet rs = sqlstatement.executeQuery(query);
             int i =1;
             while (rs.next()) {
-                String temp_user = rs.getString("username");
-                String temp_pass = rs.getString("password");
-                String temp_srvc = rs.getString("service");
-                String temp_last = rs.getString("last_access_time");
+                String temp_user = crypto.decrypt(rs.getString("username"));
+                String temp_pass = crypto.decrypt(rs.getString("password"));
+                String temp_srvc = crypto.decrypt(rs.getString("service"));
+                String temp_last = crypto.decrypt(rs.getString("last_access_time"));
                 list.add(new Credentials(i,temp_user,temp_pass,temp_srvc,temp_last));
                 i++;
             }
@@ -92,6 +96,10 @@ public class SearchProceedController implements Initializable {
         catch (SQLException e)
         {
             e.printStackTrace();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
         }
     }
 

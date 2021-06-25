@@ -1,10 +1,9 @@
 package passwordauthen;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.InputMismatchException;
-import java.util.LinkedList;
-import java.util.Scanner;
+import java.util.*;
 
 public class Sll
 {
@@ -13,14 +12,22 @@ public class Sll
     LinkedList passwords = new LinkedList();
     LinkedList services = new LinkedList();
     Scanner sc = new Scanner(System.in);
-    public void add_credentials(String usr,String pwd,String srvc)
+    public void add_credentials(String usr,String pwd,String srvc) throws Exception
     {
+        AESCrypto crypto = new AESCrypto();
         int temp_count = obj.count();
         Date date=new Date();
-        String sql ="INSERT INTO "+obj.GLOBAL_DB+" (id,username,password,service,last_access_time,phone) VALUES("+(temp_count+1)+",'"+usr+"','"+pwd+"','"+srvc+"','"+date+"',0)";
+        String temp_username = crypto.encrypt(usr);
+        String temp_password = crypto.encrypt(pwd);
+        String temp_service = crypto.encrypt(srvc);
+        String temp_date = crypto.encrypt(date.toString());
+        String sql ="INSERT INTO "+obj.GLOBAL_DB+" (id,username,password,service,last_access_time,phone) VALUES("+(temp_count+1)+",'"+temp_username+"','"+temp_password+"','"+temp_service+"','"+temp_date+"',0)";
         obj.execute(sql);
-        int count_records = obj.count();
+    }
 
+    private static String getEncoded(String data)
+    {
+        return Base64.getEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8));
     }
 
     public void display()

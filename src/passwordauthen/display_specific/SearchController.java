@@ -12,6 +12,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import passwordauthen.AESCrypto;
+import passwordauthen.Encryption;
 import passwordauthen.ManageSql;
 import passwordauthen.MenuScreen;
 
@@ -101,14 +103,15 @@ public class SearchController implements Initializable {
     protected void get_array() throws SQLException {
         ManageSql obj = new ManageSql();
         Connection con = obj.connectToDb();
-        String query = "SELECT * FROM "+obj.GLOBAL_DB+" WHERE service != 'MASTER'";
+        AESCrypto crypto = new AESCrypto();
+        String query = "SELECT * FROM "+obj.GLOBAL_DB+" WHERE id != 1";
         try{
             Statement sqlstatement = con.createStatement();
             ResultSet rs = sqlstatement.executeQuery(query);
             while (rs.next()) {
-                String temp_user = rs.getString("username");
-                String temp_pass = rs.getString("password");
-                String temp_service = rs.getString("service");
+                String temp_user = crypto.decrypt(rs.getString("username"));
+                String temp_pass = crypto.decrypt(rs.getString("password"));
+                String temp_service = crypto.decrypt(rs.getString("service"));
                 if(!usernames.contains(temp_user))
                 {
                     usernames.add(temp_user);
@@ -128,6 +131,10 @@ public class SearchController implements Initializable {
         {
             e.printStackTrace();
         }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
 
 
     }
@@ -145,7 +152,7 @@ public class SearchController implements Initializable {
         } else {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Search Confirmation");
-            alert.setHeaderText("You are about to search based on the field : " + getinput.choice);
+            alert.setHeaderText("You are about to search based on the field : " + getinput.input);
             alert.setContentText("Are you sure you want to exit?: ");
             if (alert.showAndWait().get() == ButtonType.OK) {
                 Parent root = FXMLLoader.load(getClass().getResource("Proceed_after_searching.fxml"));

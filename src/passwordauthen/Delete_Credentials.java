@@ -70,16 +70,17 @@ public class Delete_Credentials implements Initializable {
     private void loadData() {
         ManageSql obj = new ManageSql();
         Connection con = obj.connectToDb();
-        String query = "SELECT * FROM "+obj.GLOBAL_DB+" WHERE service != 'MASTER'";
+        AESCrypto crypto = new AESCrypto();
+        String query = "SELECT * FROM "+obj.GLOBAL_DB+" WHERE id != 1";
         try{
             Statement sqlstatement = con.createStatement();
             ResultSet rs = sqlstatement.executeQuery(query);
             int i =1;
             while (rs.next()) {
-                String temp_user = rs.getString("username");
-                String temp_pass = rs.getString("password");
-                String temp_srvc = rs.getString("service");
-                String temp_last = rs.getString("last_access_time");
+                String temp_user = crypto.decrypt(rs.getString("username"));
+                String temp_pass = crypto.decrypt(rs.getString("password"));
+                String temp_srvc = crypto.decrypt(rs.getString("service"));
+                String temp_last = crypto.decrypt(rs.getString("last_access_time"));
                 list.add(new Credentials(i,temp_user,temp_pass,temp_srvc,temp_last));
                 i++;
             }
@@ -89,6 +90,10 @@ public class Delete_Credentials implements Initializable {
         catch (SQLException e)
         {
             e.printStackTrace();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
         }
     }
 
@@ -157,7 +162,8 @@ public class Delete_Credentials implements Initializable {
     public void proceed(ActionEvent e)throws IOException {
         String temp = delete_choice.getText();
         int choice = Integer.parseInt(temp);
-        if (choice == 0) {
+        ManageSql count = new ManageSql();
+        if (choice == 0 || choice > (count.count()-1)) {
             Alert zeroerror = new Alert(Alert.AlertType.ERROR);
             zeroerror.setTitle("Enter a valid input");
             zeroerror.setHeaderText("0 is not valid input.The range starts from 1");

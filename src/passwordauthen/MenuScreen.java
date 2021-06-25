@@ -72,8 +72,10 @@ public class MenuScreen {
         {
             e.printStackTrace();
         }
-        hellouser_label.setText("Hello "+name);
-        last_login_label.setText(last_login);
+        String decoded_name = Encryption.getDecoded(name);
+        String decoded_last_login = Encryption.getDecoded(last_login);
+        hellouser_label.setText("Hello "+decoded_name);
+        last_login_label.setText(decoded_last_login);
     }
 
     public void logout()
@@ -138,7 +140,7 @@ public class MenuScreen {
                 alert.setHeaderText("Added Credentials successfully");
                 if (alert.showAndWait().get() == ButtonType.OK) {
                 }
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
 
             }
         }

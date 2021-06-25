@@ -1,22 +1,20 @@
 package passwordauthen.displaycreds;
 
-import javafx.beans.Observable;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import passwordauthen.AESCrypto;
+import passwordauthen.Encryption;
 import passwordauthen.ManageSql;
 import passwordauthen.MenuScreen;
 
@@ -71,16 +69,17 @@ public class List_credentials implements Initializable {
     private void loadData() {
         ManageSql obj = new ManageSql();
         Connection con = obj.connectToDb();
+        AESCrypto crypto = new AESCrypto();
         String query = "SELECT * FROM "+obj.GLOBAL_DB+" WHERE id != 1";
         try{
             Statement sqlstatement = con.createStatement();
             ResultSet rs = sqlstatement.executeQuery(query);
             int i =1;
             while (rs.next()) {
-                String temp_user = rs.getString("username");
-                String temp_pass = rs.getString("password");
-                String temp_srvc = rs.getString("service");
-                String temp_last = rs.getString("last_access_time");
+                String temp_user = crypto.decrypt(rs.getString("username"));
+                String temp_pass = crypto.decrypt(rs.getString("password"));
+                String temp_srvc = crypto.decrypt(rs.getString("service"));
+                String temp_last = crypto.decrypt(rs.getString("last_access_time"));
                 list.add(new Credentials(i,temp_user,temp_pass,temp_srvc,temp_last));
                 i++;
             }
@@ -90,6 +89,10 @@ public class List_credentials implements Initializable {
         catch (SQLException e)
         {
             e.printStackTrace();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
         }
     }
 

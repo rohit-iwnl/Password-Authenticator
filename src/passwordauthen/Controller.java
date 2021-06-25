@@ -18,7 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class Controller {
+public class Controller{
     @FXML
     private Stage stage;
     private Scene scene;
@@ -35,6 +35,9 @@ public class Controller {
     Label incorrect_warning;
     @FXML
     TextField input_otp;
+
+    @FXML
+    TextField input_key;
 
     public static int finalotp = 0;
     private int i = 0;
@@ -65,6 +68,8 @@ public class Controller {
         String pwdcheck = "";
         String phone = "";
         obj.GLOBAL_DB = temp_username;
+        String md5_username = Encryption.md5generate(temp_username);
+        String md5_password = Encryption.md5generate(temp_password);
         String query = "SELECT id, username, password, service, phone FROM "+obj.GLOBAL_DB+" WHERE id=1;";
         Connection con = obj.connectToDb();
         if(con == null)
@@ -87,7 +92,7 @@ public class Controller {
         {
             System.out.println(e);
         }
-        if ((usrcheck.compareTo(temp_username) != 0) || (pwdcheck.compareTo(temp_password) != 0))
+        if ((usrcheck.compareTo(md5_username) != 0) || (pwdcheck.compareTo(md5_password) != 0))
         {
             incorrect_warning.setText("Incorrect username/password");
             i++;
@@ -107,7 +112,8 @@ public class Controller {
 
         }
         else {
-            finalotp = Fast2sms.sendSms(phone);
+            String decoded_phone = Encryption.getDecoded(phone);
+            finalotp = Fast2sms.sendSms(decoded_phone);
             try {
                 proceed(action);
             } catch (IOException e) {
@@ -158,15 +164,22 @@ public class Controller {
             }
         } else {
             if (temp.compareTo(str_otp) == 0) {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("NewMenuScreen.fxml"));
-                root = loader.load();
-                MenuScreen obj = loader.getController();
-                obj.getname();
-                stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+                Parent root = FXMLLoader.load(getClass().getResource("Enter_key.fxml"));
+                stage = (Stage)((Node)event.getSource()).getScene().getWindow();
                 scene = new Scene(root);
                 stage.setScene(scene);
                 scene.setFill(Color.TRANSPARENT);
                 stage.show();
+//                FXMLLoader loader = new FXMLLoader(getClass().getResource("NewMenuScreen.fxml"));
+//                root = loader.load();
+//                MenuScreen obj = loader.getController();
+//                obj.getname();
+//                stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+//                scene = new Scene(root);
+//                stage.setScene(scene);
+//                scene.setFill(Color.TRANSPARENT);
+//                stage.show();
             }
             else {
                 incorrect_otp.setText("Incorrect OTP.Please try again");
@@ -194,6 +207,29 @@ public class Controller {
         scene.setFill(Color.TRANSPARENT);
         stage.show();
     }
+
+    public void check_key(ActionEvent e)throws IOException
+    {
+        String temp = input_key.getText();
+        Alert ask_user = new Alert(Alert.AlertType.CONFIRMATION);
+        ask_user.setTitle("Are you sure that the entered key is correct?");
+        ask_user.setHeaderText("Wrong key will lead to data not being read properly");
+        ask_user.setContentText("Click OK if the key is correct.\nEntered key is :"+temp);
+        if(ask_user.showAndWait().get() == ButtonType.OK)
+        {
+            AESCrypto.userkey=temp;
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("NewMenuScreen.fxml"));
+            root = loader.load();
+            MenuScreen obj = loader.getController();
+            obj.getname();
+            stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
+            scene = new Scene(root);
+            stage.setScene(scene);
+            scene.setFill(Color.TRANSPARENT);
+            stage.show();
+        }
+    }
+
 
 
 }
